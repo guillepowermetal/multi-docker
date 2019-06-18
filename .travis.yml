@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t guillepowermetal/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run guillepowermetal/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t guillepowermetal/multi-client ./client
+  - docker build -t guillepowermetal/multi-nginx ./nginx
+  - docker build -t guillepowermetal/multi-server ./server
+  - docker build -t guillepowermetal/multi-worker ./worker
+# log into docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+# push images to docker hub
+  - docker push guillepowermetal/multi-client
+  - docker push guillepowermetal/multi-nginx
+  - docker push guillepowermetal/multi-server
+  - docker push guillepowermetal/multi-worker
